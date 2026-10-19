@@ -3,26 +3,53 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { mockWorkshops, mockInstructors, MockWorkshop } from '@/lib/data/mockData';
+import { MockInstructor, MockWorkshop } from '@/lib/data/mockData';
 import { workshopSchema } from '@/lib/validations/schemas';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
+import type { WorkshopData } from '@/lib/data/workshopStore';
 
 interface WorkshopEditClientProps {
   workshopId: number;
 }
 
-export default function WorkshopEditClient({ workshopId }: WorkshopEditClientProps) {
-  const router = useRouter();
-  const initialData: MockWorkshop =
-    mockWorkshops.find((w) => w.id === workshopId) || mockWorkshops[0];
+interface WorkshopEditFormProps {
+  workshop: MockWorkshop;
+  instructors: MockInstructor[];
+  updateData: (update: (current: WorkshopData) => WorkshopData) => void;
+}
 
+export default function WorkshopEditClient({ workshopId }: WorkshopEditClientProps) {
+  const { data, isLoaded, updateData } = useWorkshopData();
+  const workshop = data.workshops.find((item) => item.id === workshopId);
+
+  if (!isLoaded) {
+    return <div className="max-w-3xl mx-auto p-12 text-center text-slate-500 text-xs">Atölye bilgileri yükleniyor...</div>;
+  }
+
+  if (!workshop) {
+    return <div className="max-w-3xl mx-auto p-12 text-center text-slate-500 text-xs">Atölye bulunamadı.</div>;
+  }
+
+  return (
+    <WorkshopEditForm
+      key={workshop.id}
+      workshop={workshop}
+      instructors={data.instructors}
+      updateData={updateData}
+    />
+  );
+}
+
+function WorkshopEditForm({ workshop, instructors, updateData }: WorkshopEditFormProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    title: initialData.title,
-    category: initialData.category,
-    description: initialData.description,
-    startDate: initialData.startDate.slice(0, 16),
-    quota: initialData.quota,
-    instructorId: initialData.instructorId,
-    status: initialData.status,
+    title: workshop.title,
+    category: workshop.category,
+    description: workshop.description,
+    startDate: workshop.startDate.slice(0, 16),
+    quota: workshop.quota,
+    instructorId: workshop.instructorId,
+    status: workshop.status,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,17 +78,31 @@ export default function WorkshopEditClient({ workshopId }: WorkshopEditClientPro
       return;
     }
 
-    // Mock veri üzerinde güncelleme
-    const target = mockWorkshops.find((w) => w.id === workshopId);
-    if (target) {
-      target.title = parsed.data.title;
-      target.description = parsed.data.description;
-      target.quota = parsed.data.quota;
-      target.status = parsed.data.status;
-      target.instructorId = parsed.data.instructorId;
-      target.instructor = mockInstructors.find((i) => i.id === parsed.data.instructorId);
+    const instructor = instructors.find((item) => item.id === parsed.data.instructorId);
+    if (!instructor) {
+      setErrors({ instructorId: 'Lütfen kayıtlı bir eğitmen seçiniz.' });
+      return;
     }
 
+    updateData((current) => ({
+      ...current,
+      workshops: current.workshops.map((item) =>
+        item.id === workshop.id
+          ? {
+              ...item,
+              title: parsed.data.title,
+              category: formData.category,
+              description: parsed.data.description,
+              details: parsed.data.description,
+              startDate: parsed.data.startDate.toISOString(),
+              quota: parsed.data.quota,
+              status: parsed.data.status,
+              instructorId: instructor.id,
+              instructor,
+            }
+          : item
+      ),
+    }));
     setSuccess(true);
     setTimeout(() => {
       router.push('/admin');
@@ -73,7 +114,7 @@ export default function WorkshopEditClient({ workshopId }: WorkshopEditClientPro
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Atölyeyi Düzenle</h1>
-          <p className="text-xs text-slate-500 mt-0.5">#{workshopId} numaralı atölye bilgilerini güncelleyin.</p>
+          <p className="text-xs text-slate-500 mt-0.5">#{workshop.id} numaralı atölye bilgilerini güncelleyin.</p>
         </div>
         <Link
           href="/admin"
@@ -128,7 +169,7 @@ export default function WorkshopEditClient({ workshopId }: WorkshopEditClientPro
               onChange={(e) => setFormData({ ...formData, instructorId: Number(e.target.value) })}
               className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white"
             >
-              {mockInstructors.map((ins) => (
+              {instructors.map((ins) => (
                 <option key={ins.id} value={ins.id}>
                   {ins.fullName} ({ins.specialty})
                 </option>

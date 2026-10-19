@@ -2,10 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { mockWorkshops } from '@/lib/data/mockData';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
 import WorkshopCard from '@/components/WorkshopCard';
 
 export default function HomePage() {
+  const { data } = useWorkshopData();
+  const { workshops, instructors } = data;
   const [selectedCategory, setSelectedCategory] = useState<string>('Tümü');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'FULL'>('ALL');
@@ -15,7 +17,7 @@ export default function HomePage() {
 
   // Filtreleme ve Sıralama
   const filteredWorkshops = useMemo(() => {
-    const list = mockWorkshops.filter((workshop) => {
+    const list = workshops.filter((workshop) => {
       const matchesCategory =
         selectedCategory === 'Tümü' || workshop.category === selectedCategory;
 
@@ -46,15 +48,10 @@ export default function HomePage() {
       }
       return 0;
     });
-  }, [selectedCategory, searchQuery, statusFilter, sortOrder]);
+  }, [workshops, selectedCategory, searchQuery, statusFilter, sortOrder]);
 
   return (
     <div className="space-y-12 pb-16">
-      {/* Örnek Veri Bilgilendirme Notu */}
-      <div className="bg-slate-100 border-b border-slate-200 px-4 py-2 text-center text-xs text-slate-600">
-        <span className="font-semibold text-slate-800">Bilgi:</span> Şu anda zenginleştirilmiş örnek atölye ve eğitmen verileri gösterilmektedir. Neon bağlantısı yapıldığında canlı veritabanı kayıtları gösterilecektir.
-      </div>
-
       {/* Hero Alanı (Temiz, Profesyonel Beyaz Tasarım) */}
       <section className="bg-white border-b border-slate-200 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center space-y-5">
@@ -89,11 +86,11 @@ export default function HomePage() {
           {/* İstatistik Göstergeleri */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto pt-8">
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="text-xl font-bold text-slate-900">12+</div>
+              <div className="text-xl font-bold text-slate-900">{workshops.length}</div>
               <div className="text-2xs text-slate-500 font-medium">Workshop</div>
             </div>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="text-xl font-bold text-slate-900">11</div>
+              <div className="text-xl font-bold text-slate-900">{instructors.length}</div>
               <div className="text-2xs text-slate-500 font-medium">Usta Eğitmen</div>
             </div>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
@@ -204,6 +201,37 @@ export default function HomePage() {
               Filtreleri Temizle
             </button>
           </div>
+        )}
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Eğitmenlerimiz</h2>
+            <p className="text-xs text-slate-500 mt-1">Atölyelerimize yön veren usta eğitmenlerle tanışın.</p>
+          </div>
+          <Link href="/instructors" className="text-xs font-semibold text-blue-700 hover:text-blue-800">
+            Tüm eğitmenler →
+          </Link>
+        </div>
+        {instructors.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {instructors.map((instructor) => (
+              <article key={instructor.id} className="flex items-center gap-3 bg-white p-4 rounded-xl border border-slate-200">
+                <img
+                  src={instructor.avatarUrl}
+                  alt={instructor.fullName}
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-200"
+                />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-slate-900 truncate">{instructor.fullName}</h3>
+                  <p className="text-xs text-blue-600 truncate">{instructor.specialty}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Henüz eğitmen eklenmemiş.</p>
         )}
       </section>
     </div>

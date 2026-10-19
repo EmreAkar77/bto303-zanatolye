@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { mockInstructors } from '@/lib/data/mockData';
+import { MockWorkshop } from '@/lib/data/mockData';
 import { workshopSchema } from '@/lib/validations/schemas';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
 
 export default function NewWorkshopPage() {
   const router = useRouter();
+  const { data, updateData } = useWorkshopData();
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Seramik',
+    category: 'Seramik' as MockWorkshop['category'],
     description: '',
     startDate: '',
     quota: 10,
@@ -46,6 +48,34 @@ export default function NewWorkshopPage() {
       return;
     }
 
+    const instructor = data.instructors.find((item) => item.id === parsed.data.instructorId);
+    if (!instructor) {
+      setErrors({ instructorId: 'Lütfen kayıtlı bir eğitmen seçiniz.' });
+      return;
+    }
+
+    updateData((current) => {
+      const newWorkshop: MockWorkshop = {
+        id: Math.max(...current.workshops.map((workshop) => workshop.id), 0) + 1,
+        title: parsed.data.title,
+        category: formData.category,
+        description: parsed.data.description,
+        details: parsed.data.description,
+        startDate: parsed.data.startDate.toISOString(),
+        quota: parsed.data.quota,
+        registeredCount: 0,
+        status: parsed.data.status,
+        price: 'Bilgi için iletişime geçin',
+        location: 'Atölye bilgisi için iletişime geçin',
+        duration: 'Belirtilmedi',
+        imageUrl: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=900&q=80',
+        fallbackColor: '#64748b',
+        instructorId: instructor.id,
+        instructor,
+      };
+
+      return { ...current, workshops: [...current.workshops, newWorkshop] };
+    });
     setSuccess(true);
     setTimeout(() => {
       router.push('/admin');
@@ -101,7 +131,7 @@ export default function NewWorkshopPage() {
             </label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value as MockWorkshop['category'] })}
               className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="Seramik">Seramik</option>
@@ -125,7 +155,7 @@ export default function NewWorkshopPage() {
                 errors.instructorId ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
               }`}
             >
-              {mockInstructors.map((ins) => (
+              {data.instructors.map((ins) => (
                 <option key={ins.id} value={ins.id}>
                   {ins.fullName} ({ins.specialty})
                 </option>

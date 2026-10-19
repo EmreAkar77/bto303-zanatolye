@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { mockInstructors, mockWorkshops } from '@/lib/data/mockData';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
 
 export default function InstructorsPage() {
+  const { data } = useWorkshopData();
+  const { instructors, workshops } = data;
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filtered = mockInstructors.filter((ins) => {
+  const filtered = instructors.filter((ins) => {
     return (
       ins.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ins.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,7 +47,7 @@ export default function InstructorsPage() {
       {/* Eğitmen Kartları */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((ins) => {
-          const instructorWorkshops = mockWorkshops.filter((w) => w.instructorId === ins.id);
+          const instructorWorkshops = workshops.filter((w) => w.instructorId === ins.id);
 
           return (
             <div

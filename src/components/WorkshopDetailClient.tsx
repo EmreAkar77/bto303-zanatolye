@@ -2,17 +2,30 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { mockWorkshops, MockWorkshop } from '@/lib/data/mockData';
+import { MockWorkshop } from '@/lib/data/mockData';
 import { validateRegistrationEligibility } from '@/lib/rules/workshopRules';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
 
 interface WorkshopDetailClientProps {
   workshopId: number;
 }
 
 export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClientProps) {
-  const workshop: MockWorkshop =
-    mockWorkshops.find((w) => w.id === workshopId) || mockWorkshops[0];
+  const { data, isLoaded } = useWorkshopData();
+  const workshop = data.workshops.find((item) => item.id === workshopId);
 
+  if (!isLoaded) {
+    return <div className="max-w-7xl mx-auto px-4 py-16 text-center text-neutral-500">Atölye bilgileri yükleniyor...</div>;
+  }
+
+  if (!workshop) {
+    return <div className="max-w-7xl mx-auto px-4 py-16 text-center text-neutral-500">Atölye bulunamadı.</div>;
+  }
+
+  return <WorkshopDetailContent key={workshop.id} workshop={workshop} />;
+}
+
+function WorkshopDetailContent({ workshop }: { workshop: MockWorkshop }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [registeredList, setRegisteredList] = useState<string[]>([

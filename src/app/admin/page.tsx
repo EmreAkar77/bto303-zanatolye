@@ -3,25 +3,24 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  mockWorkshops as initialWorkshops,
-  mockInstructors as initialInstructors,
   MockWorkshop,
   MockInstructor,
 } from '@/lib/data/mockData';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import { canDeleteInstructor, canDeleteWorkshop } from '@/lib/rules/workshopRules';
 import { instructorSchema } from '@/lib/validations/schemas';
+import { useWorkshopData } from '@/lib/data/useWorkshopData';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'workshops' | 'instructors'>('workshops');
+  const { data, updateData } = useWorkshopData();
+  const { workshops, instructors } = data;
 
   // Atölye State
-  const [workshops, setWorkshops] = useState<MockWorkshop[]>(initialWorkshops);
   const [workshopSearch, setWorkshopSearch] = useState('');
   const [workshopStatusFilter, setWorkshopStatusFilter] = useState('ALL');
 
   // Eğitmen State
-  const [instructors, setInstructors] = useState<MockInstructor[]>(initialInstructors);
   const [instructorSearch, setInstructorSearch] = useState('');
   const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<MockInstructor | null>(null);
@@ -99,7 +98,10 @@ export default function AdminPage() {
         setDeleteTarget(null);
         return;
       }
-      setWorkshops((prev) => prev.filter((w) => w.id !== deleteTarget.id));
+      updateData((current) => ({
+        ...current,
+        workshops: current.workshops.filter((workshop) => workshop.id !== deleteTarget.id),
+      }));
       setFeedback({ type: 'success', message: `"${deleteTarget.title}" atölyesi başarıyla silindi.` });
     } else {
       const check = canDeleteInstructor(
@@ -111,7 +113,10 @@ export default function AdminPage() {
         setDeleteTarget(null);
         return;
       }
-      setInstructors((prev) => prev.filter((i) => i.id !== deleteTarget.id));
+      updateData((current) => ({
+        ...current,
+        instructors: current.instructors.filter((instructor) => instructor.id !== deleteTarget.id),
+      }));
       setFeedback({ type: 'success', message: `"${deleteTarget.title}" eğitmeni başarıyla silindi.` });
     }
 
@@ -148,25 +153,25 @@ export default function AdminPage() {
     }
 
     if (editingInstructor) {
-      // Düzenleme
-      setInstructors((prev) =>
-        prev.map((ins) =>
-          ins.id === editingInstructor.id
-            ? { ...ins, ...parsed.data }
-            : ins
-        )
-      );
+      const updatedInstructor = { ...editingInstructor, ...parsed.data };
+      updateData((current) => ({
+        ...current,
+        instructors: current.instructors.map((instructor) =>
+          instructor.id === editingInstructor.id ? updatedInstructor : instructor
+        ),
+      }));
       setFeedback({ type: 'success', message: `"${parsed.data.fullName}" eğitmen bilgileri güncellendi.` });
     } else {
-      // Yeni ekleme
-      const newId = Math.max(...instructors.map((i) => i.id), 0) + 1;
-      const newInstructor: MockInstructor = {
-        id: newId,
-        ...parsed.data,
-        bio: `${parsed.data.specialty} alanında eğitmen.`,
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-      };
-      setInstructors((prev) => [...prev, newInstructor]);
+      updateData((current) => {
+        const newInstructor: MockInstructor = {
+          id: Math.max(...current.instructors.map((instructor) => instructor.id), 0) + 1,
+          ...parsed.data,
+          bio: `${parsed.data.specialty} alanında eğitmen.`,
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+        };
+
+        return { ...current, instructors: [...current.instructors, newInstructor] };
+      });
       setFeedback({ type: 'success', message: `Yeni eğitmen "${parsed.data.fullName}" başarıyla eklendi.` });
     }
 
