@@ -20,34 +20,34 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-100 shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Marka */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <span className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-xs group-hover:bg-blue-700 transition-colors">
               A
             </span>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-amber-700 transition-colors">
+              <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                 Atölyem
               </span>
-              <span className="text-2xs font-medium text-amber-700 -mt-1 tracking-wider uppercase">
-                Zanaat & Teknoloji
+              <span className="text-2xs font-medium text-slate-500 -mt-1 tracking-wider uppercase">
+                Zanaat & Workshop
               </span>
             </div>
           </Link>
 
-          {/* Masaüstü Menü */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Masaüstü Navigasyon */}
+          <nav className="hidden md:flex items-center gap-1.5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-sm transition-colors ${
                   isActive(link.href)
-                    ? 'bg-amber-100/80 text-amber-900 font-semibold shadow-xs'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                    ? 'bg-blue-50 text-blue-700 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium'
                 }`}
               >
                 {link.label}
@@ -55,7 +55,7 @@ export default function Navbar() {
             ))}
             <Link
               href="/workshops/new"
-              className="ml-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition-all hover:shadow"
+              className="ml-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-xs transition-colors"
             >
               <span>+</span> Yeni Atölye
             </Link>
@@ -66,10 +66,10 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-hidden"
+              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-hidden"
               aria-label="Menüyü aç/kapat"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -81,18 +81,18 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobil Açılır Menü (375px uyumlu) */}
+      {/* Mobil Menü (375px uyumlu) */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-neutral-200 bg-white px-4 pt-2 pb-4 space-y-1">
+        <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2.5 rounded-lg text-base font-medium ${
+              className={`block px-3 py-2 rounded-lg text-sm ${
                 isActive(link.href)
-                  ? 'bg-amber-100 text-amber-900 font-semibold'
-                  : 'text-neutral-700 hover:bg-neutral-50'
+                  ? 'bg-blue-50 text-blue-700 font-semibold'
+                  : 'text-slate-700 hover:bg-slate-50 font-medium'
               }`}
             >
               {link.label}
@@ -101,9 +101,9 @@ export default function Navbar() {
           <Link
             href="/workshops/new"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-center mt-3 px-4 py-2.5 rounded-lg text-base font-semibold text-white bg-amber-600 hover:bg-amber-700"
+            className="block text-center mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
           >
-            + Yeni Atölye Aç
+            + Yeni Atölye Ekle
           </Link>
         </div>
       )}

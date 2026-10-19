@@ -27,13 +27,21 @@ export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClien
   const isPast = workshop.status === 'COMPLETED';
   const availableSeats = Math.max(0, workshop.quota - currentRegisteredCount);
 
-  // Kayıt gönderme işlemi (İş kuralları denetimi)
+  // Kayıt gönderme işlemi (3 Saf İş Kuralı Denetimi)
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
 
+    // Form doğrulama kontrolü
     if (!fullName.trim() || !email.trim()) {
       setFeedback({ type: 'error', message: 'Lütfen ad soyad ve e-posta alanlarını eksiksiz doldurunuz.' });
+      return;
+    }
+
+    // Basit e-posta formatı denetimi
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFeedback({ type: 'error', message: 'Lütfen geçerli bir e-posta adresi giriniz.' });
       return;
     }
 
@@ -46,7 +54,7 @@ export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClien
       return;
     }
 
-    // 2. Saf iş kuralı denetimi
+    // 2. Saf iş kuralları denetimi
     const ruleResult = validateRegistrationEligibility({
       workshopStartDate: workshop.startDate,
       quota: workshop.quota,
@@ -84,147 +92,143 @@ export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClien
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Geri Dönüş Butonu */}
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Üst Geri Butonu & Kategori */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-600 hover:text-amber-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors"
         >
           ← Atölyelere Geri Dön
         </Link>
-        <span className="text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-medium">
+        <span className="text-2xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
           {workshop.category}
         </span>
       </div>
 
-      {/* Ana Başlık ve Hero Görsel */}
-      <div className="relative rounded-3xl overflow-hidden bg-neutral-900 h-72 sm:h-96 w-full shadow-lg">
+      {/* Hero Görsel Alanı */}
+      <div className="relative rounded-2xl overflow-hidden bg-slate-900 h-64 sm:h-80 w-full shadow-xs border border-slate-200">
         {!imageError ? (
           <img
             src={workshop.imageUrl}
             alt={workshop.title}
             onError={() => setImageError(true)}
-            className="w-full h-full object-cover opacity-85"
+            className="w-full h-full object-cover opacity-90"
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center text-white"
-            style={{ backgroundColor: workshop.fallbackColor || '#78350f' }}
-          >
-            <span className="text-6xl">🎨</span>
+          <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white">
+            <span className="text-5xl">🎨</span>
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-900/40 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-transparent flex flex-col justify-end p-6 sm:p-8 text-white">
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white">
+            <span className="px-2.5 py-0.5 rounded-md text-2xs font-semibold bg-blue-600 text-white">
               {workshop.category}
             </span>
             {isPast ? (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-700 text-neutral-200">
-                Geçmiş Atölye
+              <span className="px-2.5 py-0.5 rounded-md text-2xs font-semibold bg-slate-700 text-slate-200">
+                Tamamlandı
               </span>
             ) : isFull ? (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-600 text-white">
+              <span className="px-2.5 py-0.5 rounded-md text-2xs font-semibold bg-red-600 text-white">
                 Kontenjan Dolu
               </span>
             ) : (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white">
-                Kayıtlar Açık
+              <span className="px-2.5 py-0.5 rounded-md text-2xs font-semibold bg-emerald-600 text-white">
+                Açık Kayıt
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight max-w-3xl leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight max-w-3xl leading-snug">
             {workshop.title}
           </h1>
-          <p className="text-sm sm:text-base text-neutral-300 mt-2 max-w-2xl line-clamp-2">
+          <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl line-clamp-2">
             {workshop.description}
           </p>
         </div>
       </div>
 
-      {/* İçerik Düzeni (İki Sütun) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Sol Sütun: Açıklama, Müfredat, Eğitmen */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Detay Açıklaması */}
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
-            <h2 className="text-xl font-bold text-neutral-900">Atölye Hakkında</h2>
-            <p className="text-neutral-700 leading-relaxed text-sm sm:text-base">
+      {/* İki Sütunlu İçerik Düzeni */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Sol Alan: Detaylar & Eğitmen */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Açıklama Kartı */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+            <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">Atölye Hakkında</h2>
+            <p className="text-slate-700 leading-relaxed text-sm">
               {workshop.details}
             </p>
 
-            <div className="pt-4 border-t border-neutral-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-3 bg-neutral-50 rounded-xl">
-                <span className="text-neutral-500 block">Süre</span>
-                <span className="font-bold text-neutral-800 text-sm">{workshop.duration}</span>
+            <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
+                <span className="text-slate-500 text-2xs block">Süre</span>
+                <span className="font-bold text-slate-800 text-xs">{workshop.duration}</span>
               </div>
-              <div className="p-3 bg-neutral-50 rounded-xl">
-                <span className="text-neutral-500 block">Konum</span>
-                <span className="font-bold text-neutral-800 text-sm">{workshop.location}</span>
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
+                <span className="text-slate-500 text-2xs block">Konum</span>
+                <span className="font-bold text-slate-800 text-xs">{workshop.location}</span>
               </div>
-              <div className="p-3 bg-neutral-50 rounded-xl">
-                <span className="text-neutral-500 block">Materyaller</span>
-                <span className="font-bold text-neutral-800 text-sm">Tümü Dahil</span>
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
+                <span className="text-slate-500 text-2xs block">Malzemeler</span>
+                <span className="font-bold text-slate-800 text-xs">Atölyece Sağlanır</span>
               </div>
             </div>
           </div>
 
           {/* Eğitmen Kartı */}
           {workshop.instructor && (
-            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
-              <h2 className="text-xl font-bold text-neutral-900">Atölye Eğitmeni</h2>
-              <div className="flex items-start gap-4">
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-3">
+              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">Atölye Eğitmeni</h2>
+              <div className="flex items-start gap-3.5">
                 <img
                   src={workshop.instructor.avatarUrl}
                   alt={workshop.instructor.fullName}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-200 shadow-xs"
+                  className="w-14 h-14 rounded-xl object-cover border border-slate-200"
                 />
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-neutral-900">{workshop.instructor.fullName}</h3>
-                  <p className="text-xs font-semibold text-amber-800">{workshop.instructor.specialty}</p>
-                  <p className="text-xs text-neutral-600 leading-relaxed pt-1">{workshop.instructor.bio}</p>
-                  <p className="text-2xs text-neutral-400 pt-1">✉️ {workshop.instructor.email}</p>
+                <div className="space-y-0.5">
+                  <h3 className="text-sm font-bold text-slate-900">{workshop.instructor.fullName}</h3>
+                  <p className="text-xs font-semibold text-blue-600">{workshop.instructor.specialty}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1">{workshop.instructor.bio}</p>
+                  <p className="text-2xs text-slate-400 pt-0.5">✉️ {workshop.instructor.email}</p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Sağ Sütun: Kayıt Formu ve Kontenjan Kartı */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-neutral-200/80 shadow-md space-y-6 sticky top-24">
-          <div className="flex items-baseline justify-between border-b border-neutral-100 pb-4">
+        {/* Sağ Alan: Kayıt Formu & Kontenjan */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-5 sticky top-20">
+          <div className="flex items-baseline justify-between border-b border-slate-100 pb-3">
             <div>
-              <span className="text-xs text-neutral-500 block">Katılım Ücreti</span>
-              <span className="text-2xl font-extrabold text-neutral-900">{workshop.price}</span>
+              <span className="text-2xs text-slate-500 block">Katılım Bedeli</span>
+              <span className="text-xl font-bold text-slate-900">{workshop.price}</span>
             </div>
-            <span className="text-xs font-semibold text-neutral-500">Kişi Başı</span>
+            <span className="text-2xs font-semibold text-slate-500">Kişi Başı</span>
           </div>
 
-          {/* Kontenjan ve Tarih Özeti */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs text-neutral-700">
+          <div className="space-y-2 text-xs text-slate-600">
+            <div className="flex items-center gap-2">
               <span>📅</span>
               <span className="font-medium">{formattedDate}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-700">
+            <div className="flex items-center gap-2">
               <span>📍</span>
               <span className="font-medium">{workshop.location}</span>
             </div>
 
             {/* Doluluk Çubuğu */}
             <div className="pt-2">
-              <div className="flex justify-between text-xs font-medium mb-1">
-                <span className="text-neutral-600">Kontenjan Durumu:</span>
+              <div className="flex justify-between text-2xs font-medium mb-1">
+                <span className="text-slate-500">Kontenjan Durumu:</span>
                 <span className={isFull ? 'text-red-600 font-bold' : 'text-emerald-700 font-bold'}>
-                  {currentRegisteredCount}/{workshop.quota} ({availableSeats} Yer Kaldı)
+                  {currentRegisteredCount}/{workshop.quota} ({availableSeats} yer açık)
                 </span>
               </div>
-              <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    isFull ? 'bg-red-500' : 'bg-amber-500'
+                  className={`h-full rounded-full transition-all duration-200 ${
+                    isFull ? 'bg-red-500' : 'bg-blue-600'
                   }`}
                   style={{ width: `${Math.min(100, (currentRegisteredCount / workshop.quota) * 100)}%` }}
                 />
@@ -232,10 +236,10 @@ export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClien
             </div>
           </div>
 
-          {/* Geribildirim Mesajı */}
+          {/* Geribildirim Bildirimi */}
           {feedback && (
             <div
-              className={`p-3 rounded-xl text-xs font-medium leading-relaxed ${
+              className={`p-3 rounded-lg text-xs font-medium leading-relaxed ${
                 feedback.type === 'success'
                   ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
                   : 'bg-red-50 text-red-900 border border-red-200'
@@ -247,50 +251,50 @@ export default function WorkshopDetailClient({ workshopId }: WorkshopDetailClien
           )}
 
           {/* Kayıt Formu */}
-          <form onSubmit={handleRegister} className="space-y-3 pt-2">
-            <h3 className="text-sm font-bold text-neutral-900">Atölyeye Kaydol</h3>
+          <form onSubmit={handleRegister} className="space-y-3 pt-1">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Hemen Kaydol</h3>
 
             <div>
-              <label className="block text-2xs font-semibold text-neutral-600 mb-1">Adınız Soyadınız</label>
+              <label className="block text-2xs font-semibold text-slate-700 mb-1">Adınız Soyadınız *</label>
               <input
                 type="text"
                 placeholder="Örn: Ayşe Demir"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={isFull || isPast}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 focus:ring-2 focus:ring-amber-500 disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="block text-2xs font-semibold text-neutral-600 mb-1">E-posta Adresiniz</label>
+              <label className="block text-2xs font-semibold text-slate-700 mb-1">E-posta Adresiniz *</label>
               <input
                 type="email"
                 placeholder="Örn: ayse@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isFull || isPast}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 focus:ring-2 focus:ring-amber-500 disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               />
             </div>
 
             <button
               type="submit"
               disabled={isFull || isPast}
-              className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm ${
+              className={`w-full py-2.5 rounded-lg font-semibold text-xs transition-colors shadow-2xs ${
                 isPast
-                  ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed'
+                  ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                   : isFull
-                  ? 'bg-red-100 text-red-600 cursor-not-allowed'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white hover:shadow'
+                  ? 'bg-red-50 text-red-600 border border-red-200 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {isPast ? 'Atölye Süresi Doldu' : isFull ? 'Kontenjan Dolu' : 'Kaydı Onayla'}
+              {isPast ? 'Süresi Doldu (Kayıt Kapalı)' : isFull ? 'Kontenjan Dolu' : 'Kaydı Tamamla'}
             </button>
           </form>
 
-          <p className="text-3xs text-neutral-400 text-center leading-normal">
-            Kaydol butonuna bastığınızda kontenjan ve mükerrerlik saf iş kuralları doğrulanır.
+          <p className="text-3xs text-slate-400 text-center leading-normal">
+            Kaydol butonuna tıklandığında kontenjan, mükerrerlik ve tarih saf iş kuralları denetlenir.
           </p>
         </div>
       </div>
